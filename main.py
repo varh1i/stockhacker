@@ -1,52 +1,42 @@
 import yahoo_fin.stock_info as si
-import operator
-from tinydb import TinyDB, Query
-from TickerFileReader import TickerFileReader
+import yfinance as yf
 
-ticker_file_reader = TickerFileReader("resources/tickers")
-print(ticker_file_reader.tickers)
-ticker_file_reader.save_to_postgres_db()
-#Ticker = Query()
-#search = db.search(Ticker.ticker == '1GIS')
-#print('test')
-#print(search)
+from db.TickerDatabase import TickerDatabase
+from db.TickerFileReader import TickerFileReader
 
 
-def get_increase(ticker):
-    return 1.0
+def get_growth():
+    quote_table = si.get_quote_table("aapl", dict_result=False)
+    print(quote_table)
+    print(type(quote_table))
+    one_year_estimate = quote_table.value[0]
+    quote_price = quote_table.value[15]
+    grow_estimate = (one_year_estimate / quote_price * 100) - 100
+    print(grow_estimate)
 
-def addToList(my_dict, name, value):
-    my_dict[name] = value
-    return my_dict
+
+def get_ticker_info():
+    msft = yf.Ticker("WSO/B")
+    # get stock info
+    info = msft.info
+    print(info)
 
 
-my_dict = {}
-addToList(my_dict, "MSFT", 10.2)
-addToList(my_dict, "AAPL", 15.2)
+database = TickerDatabase("docker", "docker", "127.0.0.1", "5433", "docker")
+# database.reset_database()
+# ticker_file_reader = TickerFileReader("resources/tickers")
+# print(ticker_file_reader.tickers)
+# database.add_tickers(ticker_file_reader.tickers)
+tickers = database.get_all_tickers()
+for ticker in tickers:
+    print(ticker)
+get_ticker_info()
+# database.add_company_data('MSFT', "Microsoft", "Technology", "Software")
 
-sorted_d = dict( sorted(my_dict.items(), key=operator.itemgetter(1),reverse=True))
-print(sorted_d)
 
-"""
-quote_table = si.get_quote_table("aapl", dict_result=False)
-#print(quote_table)
-one_year_estimate = quote_table.value[0]
-quote_price = quote_table.value[15]
-grow_estimate = (one_year_estimate / quote_price * 100) - 100
-print(grow_estimate)
-"""
-#import yfinance as yf
-
-#msft = yf.Ticker("MSFT")
-
-# get stock info
-#info = msft.info
-#print(info)
 
 #rec = msft.recommendations
 #print(msft.financials)
-
-import requests
 
 
 #def print_hi(name):
@@ -67,4 +57,3 @@ import requests
 #premium_research = r.html.find('#premium_research', first=True)
 #print(premium_research.html.find('dl'))
 
-# print_hi('PyCharm')
