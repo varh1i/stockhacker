@@ -1,3 +1,6 @@
+import operator
+from functools import reduce
+
 import psycopg2
 from psycopg2 import Error
 
@@ -33,6 +36,7 @@ class TickerDatabase:
                   PRICE               NUMERIC,
                   TARGET_PRICE_1Y     NUMERIC,
                   GROWTH_1Y           NUMERIC,
+                  ACCESSIBLE          BOOLEAN,
                   UPDATE_DATE         TIMESTAMP); 
                   '''
             # Execute a command: this creates a new table
@@ -60,10 +64,10 @@ class TickerDatabase:
             for ticker in tickers:
                 # Executing a SQL query to insert data into  table
                 insert_query = """
-                INSERT INTO ticker (TICKER, GROWTH_1Y, UPDATE_DATE) 
-                VALUES (%s, %s, current_timestamp) 
+                INSERT INTO ticker (TICKER, GROWTH_1Y, ACCESSIBLE, UPDATE_DATE) 
+                VALUES (%s, %s, %s, current_timestamp) 
                 """
-                item_tuple = (ticker, None)
+                item_tuple = (ticker, None, 'yes')
                 cursor.execute(insert_query, item_tuple)
                 connection.commit()
                 print("1 Record inserted successfully")
@@ -84,21 +88,40 @@ class TickerDatabase:
                                           database=self.database)
 
             cursor = connection.cursor()
-            # Executing a SQL query to insert data into  table
             update_query = """
             UPDATE ticker SET company_name = %s, sector = %s, industry = %s where ticker.ticker = %s 
             """
             item_tuple = (company_name, sector, industry, ticker)
             cursor.execute(update_query, item_tuple)
             connection.commit()
-            print("1 Record update successfully")
         except (Exception, psycopg2.Error) as error:
             print("Error while connecting to PostgreSQL", error)
         finally:
             if connection:
                 cursor.close()
                 connection.close()
-                print("PostgreSQL connection is closed")
+
+    def disable_company_data(self, ticker):
+        try:
+            connection = psycopg2.connect(user=self.user,
+                                          password=self.password,
+                                          host=self.host,
+                                          port=self.port,
+                                          database=self.database)
+
+            cursor = connection.cursor()
+            update_query = """
+            UPDATE ticker SET accessible = %s where ticker.ticker = %s 
+            """
+            item_tuple = ('no', ticker)
+            cursor.execute(update_query, item_tuple)
+            connection.commit()
+        except (Exception, psycopg2.Error) as error:
+            print("Error while connecting to PostgreSQL", error)
+        finally:
+            if connection:
+                cursor.close()
+                connection.close()
 
     def get_all_tickers(self):
         try:
@@ -114,11 +137,36 @@ class TickerDatabase:
             select ticker from ticker 
             """
             cursor.execute(select_query)
-            return cursor.fetchall()
+            tickers = cursor.fetchall()
+            tickers = list(reduce(operator.concat, tickers))
+            return tickers
         except (Exception, psycopg2.Error) as error:
             print("Error while connecting to PostgreSQL", error)
         finally:
             if connection:
                 cursor.close()
                 connection.close()
-                print("PostgreSQL connection is closed")
+
+    def get_all_accessible_tickers(self):
+        try:
+            connection = psycopg2.connect(user=self.user,
+                                          password=self.password,
+                                          host=self.host,
+                                          port=self.port,
+                                          database=self.database)
+
+            cursor = connection.cursor()
+            # Executing a SQL query to insert data into  table
+            select_query = """
+            select ticker from ticker where accessible = true and industry is null
+            """
+            cursor.execute(select_query)
+            tickers = cursor.fetchall()
+            tickers = list(reduce(operator.concat, tickers))
+            return tickers
+        except (Exception, psycopg2.Error) as error:
+            print("Error while connecting to PostgreSQL", error)
+        finally:
+            if connection:
+                cursor.close()
+                connection.close()
