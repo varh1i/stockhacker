@@ -36,6 +36,11 @@ class TickerDatabase:
                   PRICE               NUMERIC,
                   TARGET_PRICE_1Y     NUMERIC,
                   GROWTH_1Y           NUMERIC,
+                  BETA                NUMERIC,
+                  PE                  NUMERIC,
+                  EPS                 NUMERIC,
+                  MARKET_CAP_TEXT     VARCHAR,
+                  MARKET_CAP          NUMERIC,
                   ACCESSIBLE          BOOLEAN,
                   UPDATE_DATE         TIMESTAMP); 
                   '''
@@ -92,6 +97,55 @@ class TickerDatabase:
             UPDATE ticker SET company_name = %s, sector = %s, industry = %s where ticker.ticker = %s 
             """
             item_tuple = (company_name, sector, industry, ticker)
+            cursor.execute(update_query, item_tuple)
+            connection.commit()
+        except (Exception, psycopg2.Error) as error:
+            print("Error while connecting to PostgreSQL", error)
+        finally:
+            if connection:
+                cursor.close()
+                connection.close()
+
+    def add_financial_data(self, ticker, beta, target_1y, current_price, growth_1y, pe, eps, market_cap):
+        try:
+            connection = psycopg2.connect(user=self.user,
+                                          password=self.password,
+                                          host=self.host,
+                                          port=self.port,
+                                          database=self.database)
+
+            cursor = connection.cursor()
+            update_query = """
+            UPDATE ticker SET 
+             beta = %s, target_price_1y = %s, price = %s, growth_1y = %s,
+             pe = %s, eps = %s, market_cap_text = %s 
+            where ticker.ticker = %s 
+            """
+            item_tuple = (beta, target_1y, current_price, growth_1y, pe, eps, market_cap, ticker)
+            cursor.execute(update_query, item_tuple)
+            connection.commit()
+        except (Exception, psycopg2.Error) as error:
+            print("Error while connecting to PostgreSQL", error)
+        finally:
+            if connection:
+                cursor.close()
+                connection.close()
+
+    def add_financial_data_2(self, ticker, beta):
+        try:
+            connection = psycopg2.connect(user=self.user,
+                                          password=self.password,
+                                          host=self.host,
+                                          port=self.port,
+                                          database=self.database)
+
+            cursor = connection.cursor()
+            update_query = """
+            UPDATE ticker SET 
+             beta = %s 
+            where ticker.ticker = %s 
+            """
+            item_tuple = (beta, ticker)
             cursor.execute(update_query, item_tuple)
             connection.commit()
         except (Exception, psycopg2.Error) as error:

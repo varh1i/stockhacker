@@ -2,7 +2,6 @@
 
 # TODO:
 
-- get all company data, handle errors
 - get recommendations (MSFT: 1.7 (strong buy))
 - calculate 1y growth
 

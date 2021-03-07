@@ -1,28 +1,23 @@
-import operator
-import time
-from functools import reduce
-
 import yahoo_fin.stock_info as si
 
-from crawl.TickerFetcher import TickerFetcher
+from crawl.FinancialData import FinancialData
 from db.TickerDatabase import TickerDatabase
-from db.TickerFileReader import TickerFileReader
 
 
-def get_growth():
-    quote_table = si.get_quote_table("aapl", dict_result=False)
+def get_financial_data(ticker):
+    quote_table = si.get_quote_table(ticker, dict_result=False)
     print(quote_table)
     print(type(quote_table))
-    one_year_estimate = quote_table.value[0]
-    quote_price = quote_table.value[15]
-    grow_estimate = (one_year_estimate / quote_price * 100) - 100
-    print(grow_estimate)
+    return FinancialData(ticker, quote_table)
 
 
-get_growth()
+database = TickerDatabase("docker", "docker", "127.0.0.1", "5433", "docker")
+
+ticker = 'AAPL'
+fd = get_financial_data(ticker)
+database.add_financial_data(ticker, fd.beta, fd.target_1y, fd.quote_price, fd.growth_1y, fd.pe, fd.eps, fd.market_cap)
 
 '''
-database = TickerDatabase("docker", "docker", "127.0.0.1", "5433", "docker")
 
 database.reset_database()
 ticker_file_reader = TickerFileReader("resources/tickers")
