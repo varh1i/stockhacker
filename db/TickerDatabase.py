@@ -212,10 +212,35 @@ class TickerDatabase:
             cursor = connection.cursor()
             # Executing a SQL query to insert data into  table
             select_query = """
-            select ticker from ticker where accessible = true and industry = %s
+            select ticker from ticker where accessible = true and growth_1y is null and industry = %s
             """
             item_tuple = industry
-            cursor.execute(select_query, item_tuple)
+            cursor.execute(select_query, (item_tuple,))
+            tickers = cursor.fetchall()
+            tickers = list(reduce(operator.concat, tickers))
+            return tickers
+        except (Exception, psycopg2.Error) as error:
+            print("Error while connecting to PostgreSQL", error)
+        finally:
+            if connection:
+                cursor.close()
+                connection.close()
+
+    def get_all_accessible_tickers_by_sector(self, sector):
+        try:
+            connection = psycopg2.connect(user=self.user,
+                                          password=self.password,
+                                          host=self.host,
+                                          port=self.port,
+                                          database=self.database)
+
+            cursor = connection.cursor()
+            # Executing a SQL query to insert data into  table
+            select_query = """
+            select ticker from ticker where accessible = true and sector = %s
+            """
+            item_tuple = sector
+            cursor.execute(select_query, (item_tuple,))
             tickers = cursor.fetchall()
             tickers = list(reduce(operator.concat, tickers))
             return tickers

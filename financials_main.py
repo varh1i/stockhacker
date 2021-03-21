@@ -3,7 +3,7 @@ from db.TickerDatabase import TickerDatabase
 
 database = TickerDatabase("docker", "docker", "127.0.0.1", "5433", "docker")
 
-all_tickers = database.get_all_accessible_tickers_by_industry('Silver')
+all_tickers = database.get_all_accessible_tickers_by_industry('Banks—Regional')
 print(all_tickers)
 fetcher = TickerFetcher(database)
 fetcher.fetch_all_financial(all_tickers)
@@ -24,4 +24,8 @@ fetcher.fetch_all(all_tickers)
 
 # rec = msft.recommendations
 # print(msft.financials)
+'''
+
+'''
+target price = future eps * PE (TTM)  
 '''
