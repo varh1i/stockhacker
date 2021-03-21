@@ -1,21 +1,12 @@
-import yahoo_fin.stock_info as si
-
-from crawl.FinancialData import FinancialData
+from crawl.TickerFetcher import TickerFetcher
 from db.TickerDatabase import TickerDatabase
-
-
-def get_financial_data(ticker):
-    quote_table = si.get_quote_table(ticker, dict_result=False)
-    print(quote_table)
-    print(type(quote_table))
-    return FinancialData(ticker, quote_table)
-
 
 database = TickerDatabase("docker", "docker", "127.0.0.1", "5433", "docker")
 
-ticker = 'AAPL'
-fd = get_financial_data(ticker)
-database.add_financial_data(ticker, fd.beta, fd.target_1y, fd.quote_price, fd.growth_1y, fd.pe, fd.eps, fd.market_cap)
+all_tickers = database.get_all_accessible_tickers_by_industry('Silver')
+print(all_tickers)
+fetcher = TickerFetcher(database)
+fetcher.fetch_all_financial(all_tickers)
 
 '''
 

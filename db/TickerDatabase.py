@@ -131,30 +131,6 @@ class TickerDatabase:
                 cursor.close()
                 connection.close()
 
-    def add_financial_data_2(self, ticker, beta):
-        try:
-            connection = psycopg2.connect(user=self.user,
-                                          password=self.password,
-                                          host=self.host,
-                                          port=self.port,
-                                          database=self.database)
-
-            cursor = connection.cursor()
-            update_query = """
-            UPDATE ticker SET 
-             beta = %s 
-            where ticker.ticker = %s 
-            """
-            item_tuple = (beta, ticker)
-            cursor.execute(update_query, item_tuple)
-            connection.commit()
-        except (Exception, psycopg2.Error) as error:
-            print("Error while connecting to PostgreSQL", error)
-        finally:
-            if connection:
-                cursor.close()
-                connection.close()
-
     def disable_company_data(self, ticker):
         try:
             connection = psycopg2.connect(user=self.user,
@@ -212,9 +188,34 @@ class TickerDatabase:
             cursor = connection.cursor()
             # Executing a SQL query to insert data into  table
             select_query = """
-            select ticker from ticker where accessible = true and industry is null
+            select ticker from ticker where accessible = true
             """
             cursor.execute(select_query)
+            tickers = cursor.fetchall()
+            tickers = list(reduce(operator.concat, tickers))
+            return tickers
+        except (Exception, psycopg2.Error) as error:
+            print("Error while connecting to PostgreSQL", error)
+        finally:
+            if connection:
+                cursor.close()
+                connection.close()
+
+    def get_all_accessible_tickers_by_industry(self, industry):
+        try:
+            connection = psycopg2.connect(user=self.user,
+                                          password=self.password,
+                                          host=self.host,
+                                          port=self.port,
+                                          database=self.database)
+
+            cursor = connection.cursor()
+            # Executing a SQL query to insert data into  table
+            select_query = """
+            select ticker from ticker where accessible = true and industry = %s
+            """
+            item_tuple = industry
+            cursor.execute(select_query, item_tuple)
             tickers = cursor.fetchall()
             tickers = list(reduce(operator.concat, tickers))
             return tickers
