@@ -27,5 +27,5 @@ fetcher.fetch_all(all_tickers)
 '''
 
 '''
-target price = future eps * PE (TTM)  
+target price = future eps * PE (TTM)     
 '''
